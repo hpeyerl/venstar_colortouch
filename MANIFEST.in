@@ -1,0 +1,4 @@
+include *.md
+include *.py
+include LICENSE
+recursive-include src/venstar *.py *.md LICENSE
