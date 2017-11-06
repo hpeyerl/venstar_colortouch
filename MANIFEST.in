@@ -1,4 +1,4 @@
 include *.md
 include *.py
 include LICENSE
-recursive-include src/venstar *.py *.md LICENSE
+recursive-include src/venstar_colortouch *.py *.md LICENSE
