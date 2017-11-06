@@ -2,18 +2,18 @@
 # Herb is lazy and can't remember how to do stuff.
 #
 PYTHON:=python3
-PKG:=etherrain
+PKG:=venstar
 #
 # can't handle the import so force the version.  XXX(hp).
 #
 #VERSION:=${shell ${PYTHON} src/${PKG}/__init__.py}
-VERSION=0.3
+VERSION=0.1
 
 all: clean build test
 
 clean:
-	rm -rf dist build /tmp/pip-* src/etherrain.egg-info
-	rm -rf venv /home/hpeyerl/.cache/pip/wheels/8e/22/27/96436ab8e9371fdad01caa13fb9fb0a0e80299ad8ea6b24312
+	rm -rf dist build /tmp/pip-* src/venstar.egg-info
+	rm -rf venv $HOME/.cache/pip/wheels/8e/22/27/96436ab8e9371fdad01caa13fb9fb0a0e80299ad8ea6b24312
 	rm -fr /tmp/venv
 
 build:
