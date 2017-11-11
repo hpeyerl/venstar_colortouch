@@ -9,7 +9,7 @@ class VenstarColorTouch:
         self.addr = addr
         self.timeout = timeout
         self.status = {}
-        self._api_ver, self._type = 
+        self._api_ver = None
         self._type = None
         self._info = None
         self._sensors = None
@@ -17,6 +17,8 @@ class VenstarColorTouch:
 
     def login(self):
         r = self._request("/")
+        if r is False:
+            return r
         j = r.json()
         if j["api_ver"] >= MIN_API_VER:
             self._api_ver = j["api_ver"]
@@ -25,39 +27,40 @@ class VenstarColorTouch:
         else:
             return False
 
-    def _request(self, uri):
+    def _request(self, path):
+        uri = "http://{addr}/{path}".format(addr=self.addr,path=path)
         try:
             req = requests.get(uri, timeout=self.timeout)
-        except BadStatusLine:
-            print("Received a bad status line from Venstar ColorTouch")
+        except:
+            print("Error requesting {uri} from Venstar ColorTouch".format(uri=uri))
             return False
 
         if not req.ok:
             print("Connection error logging into Venstar ColorTouch")
             return False
 
+        print (req)
         return req
 
     def update_info(self):
-        uri = "http://{0}/query/info".format(self.addr)
-        ret = self._request(uri)
+        r = self._request("query/info")
 
-        if ret is False:
-            return False
+        if r is False:
+            return r
 
+        print r.json()
         self._info=r.json()
         return True
 
     def update_sensors(self):
-        uri = "http://{0}/query/sensors".format(self.addr)
-        ret = self._request(uri)
+        ret = self._request("query/sensors")
 
         if ret is False:
             return False
         self._sensors = r.json()
 
     def get_name(self):
-        return self._info.["name"]
+        return self._info["name"]
 
     def get_mode(self):
         return self._info["mode"]
