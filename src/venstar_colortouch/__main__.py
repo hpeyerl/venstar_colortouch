@@ -24,6 +24,25 @@ def test():
     else:
         print("Was not able to get info")
 
+    print("Name is {n}\nFan is {f}\nHeat setpoint is {h}\nCool setpoint is {c}\n".format(n=ct.get_info("name"),f=ct.get_info("fan"),h=ct.get_info("heattemp"),c=ct.get_info("cooltemp")))
+
+    if ct.update_sensors() is True:
+        print("Was able to get sensors:{0}".format(ct._sensors))
+    else:
+        print("Was not able to get sensors")
+
+    print("Indoor temp is {t} and humidity is {h}".format(t=ct.get_thermostat_sensor("temp"),h=ct.get_thermostat_sensor("hum")))
+
+    print("Runtimes: {0}".format(ct.get_runtimes()))
+
+    curh=ct.get_info("heattemp")
+    curc=ct.get_info("cooltemp")
+    ct.set_setpoints(60,90)
+    ct.update_info()
+    print("Heat setpoint is {h}\nCool setpoint is {c}\n".format(h=ct.get_info("heattemp"),c=ct.get_info("cooltemp")))
+    ct.set_setpoints(curh,curc)
+    ct.update_info()
+    print("Heat setpoint is {h}\nCool setpoint is {c}\n".format(h=ct.get_info("heattemp"),c=ct.get_info("cooltemp")))
 
     return True
 
