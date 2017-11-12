@@ -116,7 +116,7 @@ There are ```update_*``` functions which update local copies of various pieces o
     </pre>
 
     ```python
-get_info("heattemp")
+    get_info("heattemp")
     ```
     
 *  ```get_thermostat_sensor(attr)``` Get a specific thermostat sensor's value.
