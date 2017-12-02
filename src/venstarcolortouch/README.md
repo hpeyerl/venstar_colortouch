@@ -9,7 +9,7 @@ The API does not implement the Venstar discovery protocol.  It is assumed that y
 ## Testing
 
 ```bash
-$ python venstar_colortouch 192.168.1.252
+$ python venstarcolortouch 192.168.1.252
 Testing with IP: 192.168.1.252
 Login successful. API: 5 Type: residential
 Was able to get info:{u'spacetemp': 67.0, u'schedulepart': 255, u'dehum_setpoint': 0, u'away': 0, u'cooltempmax': 99.0, u'cooltemp': 78.0, u'tempunits': 0, u'state': 1, u'schedule': 0, u'hum': 0, u'heattemp': 75.0, u'hum_setpoint': 36, u'fan': 0, u'hum_active': 99, u'heattempmax': 99.0, u'cooltempmin': 35.0, u'name': u'DebtRidge', u'mode': 1, u'heattempmin': 35.0, u'availablemodes': 0, u'fanstate': 1, u'setpointdelta': 2.0}
@@ -42,7 +42,7 @@ Class instantiation requires an IP address or hostname with an optional timeout.
 
 
 ```Python
-    ct = venstar_colortouch.VenstarColorTouch(a, timeout=5)
+    ct = venstarcolortouch.VenstarColorTouch(a, timeout=5)
 
     if ct.login() is True:
         print("Login successful. API: {0} Type: {1}".format(ct._api_ver,ct._type))
