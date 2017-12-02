@@ -1,6 +1,6 @@
 from __future__ import print_function
 import os,sys
-import venstar_colortouch
+import venstarcolortouch
 import time
 
 def usage():
@@ -14,7 +14,7 @@ def test():
     a = sys.argv[1]
     print ("Testing with IP: {0}".format(a))
 
-    ct = venstar_colortouch.VenstarColorTouch(a, timeout=5)
+    ct = venstarcolortouch.VenstarColorTouch(a, timeout=5)
 
     if ct.login() is True:
         print("Login successful. API: {0} Type: {1}".format(ct._api_ver,ct._type))
