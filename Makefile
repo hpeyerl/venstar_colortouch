@@ -2,7 +2,7 @@
 # Herb is lazy and can't remember how to do stuff.
 #
 PYTHON:=python3
-PKG:=venstar_colortouch
+PKG:=venstarcolortouch
 #
 # can't handle the import so force the version.  XXX(hp).
 #
@@ -12,7 +12,7 @@ VERSION=0.1
 all: clean build test
 
 clean:
-	rm -rf dist build /tmp/pip-* src/venstar_colortouch.egg-info
+	rm -rf dist build /tmp/pip-* src/venstarcolortouch.egg-info
 	rm -rf venv $HOME/.cache/pip/wheels/8e/22/27/96436ab8e9371fdad01caa13fb9fb0a0e80299ad8ea6b24312
 	rm -fr /tmp/venv
 

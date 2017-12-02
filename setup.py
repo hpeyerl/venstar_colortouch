@@ -6,9 +6,9 @@ from setuptools import setup, find_packages
 
 ###################################################################
 
-NAME = "venstar_colortouch"
+NAME = "venstarcolortouch"
 PACKAGES = find_packages(where="src")
-META_PATH = os.path.join("src", "venstar_colortouch", "__init__.py")
+META_PATH = os.path.join("src", "venstarcolortouch", "__init__.py")
 KEYWORDS = ['thermostat' ]
 CLASSIFIERS = [
         "Intended Audience :: Developers",
