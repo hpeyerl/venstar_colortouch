@@ -121,13 +121,15 @@ class VenstarColorTouch:
         self._sensors = r.json()
         return True
 
+    # returns a list of all runtime records. get_runtimes()[-1] should be the last one.
+    # runtimes are updated every day (86400 seconds).
     def get_runtimes(self):
         r = self._request("query/runtimes")
         if r is False:
             return r
         else:
             runtimes=r.json()
-            return runtimes["runtimes"][0]
+            return runtimes["runtimes"]
 
     def get_info(self, attr):
         return self._info[attr]
