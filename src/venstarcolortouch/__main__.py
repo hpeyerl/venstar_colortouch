@@ -50,12 +50,12 @@ def test():
 
     curh=ct.get_info("heattemp")
     curc=ct.get_info("cooltemp")
-    #ct.set_setpoints(60,90)
-    #ct.update_info()
-    #print("Heat setpoint is {h}\nCool setpoint is {c}\n".format(h=ct.get_info("heattemp"),c=ct.get_info("cooltemp")))
-    #ct.set_setpoints(curh,curc)
-    #ct.update_info()
-    #print("Heat setpoint is {h}\nCool setpoint is {c}\n".format(h=ct.get_info("heattemp"),c=ct.get_info("cooltemp")))
+    ct.set_setpoints(60,90)
+    ct.update_info()
+    print("Heat setpoint is {h}\nCool setpoint is {c}\n".format(h=ct.get_info("heattemp"),c=ct.get_info("cooltemp")))
+    ct.set_setpoints(curh,curc)
+    ct.update_info()
+    print("Heat setpoint is {h}\nCool setpoint is {c}\n".format(h=ct.get_info("heattemp"),c=ct.get_info("cooltemp")))
 
     return True
 
