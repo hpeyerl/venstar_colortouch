@@ -1,12 +1,17 @@
 import json
 import requests
+import urllib3
 import urllib
 import logging
+from requests.auth import HTTPDigestAuth
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 MIN_API_VER=3
 
 class VenstarColorTouch:
-    def __init__(self, addr, timeout):
+    def __init__(self, addr, timeout, user=None, password=None, proto='http', SSLCert=False):
+        #API Constants
         self.MODE_OFF = 0
         self.MODE_HEAT = 1
         self.MODE_COOL = 2
@@ -32,8 +37,19 @@ class VenstarColorTouch:
         self.AWAY_HOME = 0
         self.AWAY_AWAY = 1
 
+        #Input parameters
         self.addr = addr
         self.timeout = timeout
+
+        if user != None and password != None:
+            self.auth = HTTPDigestAuth(user, password)
+        else:
+            self.auth = None
+
+        self.proto = proto 
+        self.SSLCert = SSLCert
+
+        #Initialize State
         self.status = {}
         self._api_ver = None
         self._type = None
@@ -50,6 +66,7 @@ class VenstarColorTouch:
         #
         # /settings
         #
+        self.name = None
         self.tempunits = None
         self.away = None
         self.schedule = None
@@ -71,20 +88,28 @@ class VenstarColorTouch:
             return False
 
     def _request(self, path, data=None):
-        uri = "http://{addr}/{path}".format(addr=self.addr,path=path)
+        uri = "{proto}://{addr}/{path}".format(proto=self.proto, addr=self.addr, path=path)
         try:
             if data is not None:
-                req = requests.post(uri, timeout=self.timeout, data=data)
+                req = requests.post(uri, 
+                                    verify=self.SSLCert,
+                                    timeout=self.timeout,
+                                    data=data,
+                                    auth=self.auth)
             else:
-                req = requests.get(uri, timeout=self.timeout)
-        except:
-            print("Error requesting {uri} from Venstar ColorTouch".format(uri=uri))
+                req = requests.get(uri,
+                                   verify=self.SSLCert,
+                                   timeout=self.timeout,
+                                   auth=self.auth)
+        except Exception as ex:
+            print("Error requesting {uri} from Venstar ColorTouch.".format(uri=uri))
+            print(ex)
             return False
 
         if not req.ok:
-            print("Connection error logging into Venstar ColorTouch")
+            print("Connection error logging into Venstar ColorTouch. Status Code: {status}".format(status=req.status_code))
             return False
-
+       
         return req
 
     def update_info(self):
@@ -94,6 +119,7 @@ class VenstarColorTouch:
             return r
 
         self._info=r.json()
+
         #
         # Populate /control stuff
         #
@@ -101,10 +127,14 @@ class VenstarColorTouch:
         self.heattemp=self.get_info("heattemp")
         self.cooltemp=self.get_info("cooltemp")
         self.fan=self.get_info("fan")
+        self.fanstate=self.get_info("fanstate")
         self.mode=self.get_info("mode")
+        self.state=self.get_info("state")
+
         #
         # Populate /settings stuff
         #
+        self.name = self.get_info("name")
         self.tempunits = self.get_info("tempunits")
         self.away = self.get_info("away")
         self.schedule = self.get_info("schedule")
@@ -135,11 +165,26 @@ class VenstarColorTouch:
         return self._info[attr]
 
     def get_thermostat_sensor(self, attr):
-        return self._sensors["sensors"][0][attr]
+        if self._sensors != None and self._sensors["sensors"] != None and len(self._sensors["sensors"]) > 0:
+            return self._sensors["sensors"][0][attr]
+        else:
+            return None
 
     def get_outdoor_sensor(self, attr):
-        return self._sensors["sensors"][1][attr]
+        if self._sensors != None and self._sensors["sensors"] != None and len(self._sensors["sensors"]) > 0:
+            return self._sensors["sensors"][1][attr]
+        else:
+            return None
 
+    def get_indoor_temp(self):
+        return self.get_thermostat_sensor('temp')
+
+    def get_outdoor_temp(self):
+        return self.get_outdoor_sensor('temp')
+
+    def get_indoor_humidity(self):
+        return self.get_thermostat_sensor('hum')
+   
     def get_alerts(self):
         r = self._request("query/alerts")
         if r is False:
@@ -155,7 +200,7 @@ class VenstarColorTouch:
         if self.mode is None:
             return False
         path="/control"
-        data = urllib.urlencode({'mode':self.mode, 'fan':self.fan, 'heattemp':self.heattemp, 'cooltemp':self.cooltemp})
+        data = urllib.parse.urlencode({'mode':self.mode, 'fan':self.fan, 'heattemp':self.heattemp, 'cooltemp':self.cooltemp})
         print("Path is: {0}".format(path))
         r = self._request(path, data)
         if r is False:
@@ -189,7 +234,7 @@ class VenstarColorTouch:
         if self.tempunits is None:
             return False
         path="/settings"
-        data = urllib.urlencode({'tempunits':self.tempunits, 'away':self.away, 'schedule':self.schedule, 'hum_setpoint':self.hum_setpoint, 'dehum_setpoint':self.dehum_setpoint})
+        data = urllib.parse.urlencode({'tempunits':self.tempunits, 'away':self.away, 'schedule':self.schedule, 'hum_setpoint':self.hum_setpoint, 'dehum_setpoint':self.dehum_setpoint})
         print("Path is: {0}".format(path))
         r = self._request(path, data)
         if r is False:
