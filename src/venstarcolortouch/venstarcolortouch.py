@@ -207,12 +207,12 @@ class VenstarColorTouch:
             return r
         else:
             if r is not None:
-                status = r.json()["success"]
-                if status is True:
+                if "success" in r.json():
                     print("set_control Success!")
+                    return True
                 else:
                     print("set_control Fail {0}.".format(r.json()))
-                return status
+                    return False
 
     def set_setpoints(self, heattemp, cooltemp):
         # Must not violate setpointdelta.
@@ -241,12 +241,12 @@ class VenstarColorTouch:
             return r
         else:
             if r is not None:
-                status = r.json()["success"]
-                if status is True:
+                if "success" in r.json():
                     print("set_control Success!")
+                    return True
                 else:
                     print("set_control Fail {0}.".format(r.json()))
-                return status
+                    return False
 
     def set_tempunits(self, tempunits):
         self.tempunits = tempunits
