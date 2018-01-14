@@ -216,7 +216,7 @@ class VenstarColorTouch:
 
     def set_setpoints(self, heattemp, cooltemp):
         # Must not violate setpointdelta if we're in auto mode.
-        if heattemp + self.setpointdelta > cooltemp and self.mode == self.MODE_AUTO:
+        if self.mode == self.MODE_AUTO and heattemp + self.setpointdelta > cooltemp:
             print("In auto mode, the cool temp must be {0} " 
                   "degrees warmer than the heat temp.".format(self.setpointdelta))
             return False
