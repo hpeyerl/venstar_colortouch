@@ -138,8 +138,16 @@ class VenstarColorTouch:
         self.tempunits = self.get_info("tempunits")
         self.away = self.get_info("away")
         self.schedule = self.get_info("schedule")
-        self.hum_setpoint = self.get_info("hum_setpoint")
-        self.dehum_setpoint = self.get_info("dehum_setpoint")
+        # T5800 thermostat will not have hum_setpoint/dehum_setpoint in the JSON, so make
+        # it optional
+        if 'hum_setpoint' in self._info:
+          self.hum_setpoint = self.get_info("hum_setpoint")
+        else:
+          self.hum_setpoint = None
+        if 'dehum_setpoint' in self._info:
+          self.dehum_setpoint = self.get_info("dehum_setpoint")
+        else:
+          self.dehum_setpoint = None
         #
         return True
 
@@ -166,7 +174,11 @@ class VenstarColorTouch:
 
     def get_thermostat_sensor(self, attr):
         if self._sensors != None and self._sensors["sensors"] != None and len(self._sensors["sensors"]) > 0:
-            return self._sensors["sensors"][0][attr]
+            # 'hum' (humidity) sensor is not present on T5800 series
+            if attr in self._sensors["sensors"][0]:
+              return self._sensors["sensors"][0][attr]
+            else:
+              return None
         else:
             return None
 
