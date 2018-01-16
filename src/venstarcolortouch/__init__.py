@@ -1,6 +1,6 @@
 import sys
 
-__version__ = "0.3"
+__version__ = "0.4"
 
 __uri__ = 'https://github.com/hpeyerl/venstarcolortouch'
 __title__ = "venstarcolortouch"
