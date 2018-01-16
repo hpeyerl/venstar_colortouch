@@ -73,8 +73,6 @@ class VenstarColorTouch:
         self.hum_setpoint = None
         self.dehum_setpoint = None
 
-        self.login()
-
     def login(self):
         r = self._request("/")
         if r is False:
@@ -149,6 +147,11 @@ class VenstarColorTouch:
         else:
           self.dehum_setpoint = None
         #
+        if 'hum_active' in self._info:
+            self.hum_active = self.get_info("hum_active")
+        else:
+            self.hum_active = 0
+
         return True
 
     def update_sensors(self):
@@ -196,7 +199,7 @@ class VenstarColorTouch:
 
     def get_indoor_humidity(self):
         return self.get_thermostat_sensor('hum')
-   
+
     def get_alerts(self):
         r = self._request("query/alerts")
         if r is False:
