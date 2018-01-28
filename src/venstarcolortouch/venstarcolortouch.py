@@ -63,6 +63,8 @@ class VenstarColorTouch:
         self.cooltemp = None
         self.fan = None
         self.mode = None
+        self.fanstate = None
+        self.state = None
         #
         # /settings
         #
@@ -72,6 +74,7 @@ class VenstarColorTouch:
         self.schedule = None
         self.hum_setpoint = None
         self.dehum_setpoint = None
+        self.hum_active = None
 
     def login(self):
         r = self._request("/")
