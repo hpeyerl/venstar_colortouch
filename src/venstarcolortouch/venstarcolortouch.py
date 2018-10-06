@@ -250,22 +250,25 @@ class VenstarColorTouch:
         self.fan = fan
         return self.set_control()
 
+    #
+    # set_settings can't change the schedule or away while schedule is on, so no point in trying.
+    #
     def set_settings(self):
         if self.tempunits is None:
             return False
         path="/settings"
-        data = urllib.parse.urlencode({'tempunits':self.tempunits, 'away':self.away, 'schedule':self.schedule, 'hum_setpoint':self.hum_setpoint, 'dehum_setpoint':self.dehum_setpoint})
-        print("Path is: {0}".format(path))
+        data = urllib.parse.urlencode({'tempunits':self.tempunits, 'hum_setpoint':self.hum_setpoint, 'dehum_setpoint':self.dehum_setpoint})
         r = self._request(path, data)
+        print("url is: {0} json is: {1}".format(data, r.text))
         if r is False:
             return r
         else:
             if r is not None:
                 if "success" in r.json():
-                    print("set_control Success!")
+                    print("set_settings Success!")
                     return True
                 else:
-                    print("set_control Fail {0}.".format(r.json()))
+                    print("set_settings Fail {0}.".format(r.text))
                     return False
 
     def set_tempunits(self, tempunits):
@@ -273,12 +276,62 @@ class VenstarColorTouch:
         return self.set_settings()
 
     def set_away(self, away):
+        if self.away == away:
+            return True
+        if self.schedule == 1:
+            ret = self.set_schedule(0)
+            if ret == False:
+                return ret
         self.away = away
-        return self.set_settings()
+        path="/settings"
+        data = urllib.parse.urlencode({'away':self.away})
+        r = self._request(path, data)
+        if r is False:
+            ret = False
+        else:
+            if r is not None:
+                if "success" in r.json():
+                    print("set_away Success!")
+                    self.update_info()
+                    ret = True
+                else:
+                    print("set_away Fail {0}.".format(r.json()))
+                    ret = False
 
+        #
+        # If thermostat is in away mode, then can't enable schedule.
+        #
+        if self.away == 0:
+            self.set_schedule(1)
+        return ret
+
+    #
+    # We can't change any settings while the schedule is active so we can't use set_settings()
+    #
     def set_schedule(self, schedule):
+        if (self.schedule == schedule):
+            return True
+        #
+        # If thermostat is in away mode, then can't enable schedule.
+        #
+        if (self.away == 1):
+            return False
         self.schedule = schedule
-        return self.set_settings()
+        path="/settings"
+        data = urllib.parse.urlencode({'schedule':self.schedule})
+        r = self._request(path, data)
+        if r is False:
+            ret = False
+        else:
+            if r is not None:
+                if "success" in r.json():
+                    print("set_schedule Success!")
+                    self.update_info()
+                    ret = True
+                else:
+                    print("set_schedule Fail {0}.".format(r.json()))
+                    ret = False
+        return ret
 
     def set_hum_setpoint(self, hum_setpoint):
         self.hum_setpoint = hum_setpoint
