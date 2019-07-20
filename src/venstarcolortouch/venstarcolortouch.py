@@ -297,12 +297,6 @@ class VenstarColorTouch:
                 else:
                     print("set_away Fail {0}.".format(r.json()))
                     ret = False
-
-        #
-        # If thermostat is in away mode, then can't enable schedule.
-        #
-        if self.away == 0:
-            self.set_schedule(1)
         return ret
 
     #
