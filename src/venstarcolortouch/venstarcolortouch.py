@@ -219,7 +219,6 @@ class VenstarColorTouch:
             return False
         path="/control"
         data = urllib.parse.urlencode({'mode':self.mode, 'fan':self.fan, 'heattemp':self.heattemp, 'cooltemp':self.cooltemp})
-        print("Path is: {0}".format(path))
         r = self._request(path, data)
         if r is False:
             return r
@@ -259,7 +258,6 @@ class VenstarColorTouch:
         path="/settings"
         data = urllib.parse.urlencode({'tempunits':self.tempunits, 'hum_setpoint':self.hum_setpoint, 'dehum_setpoint':self.dehum_setpoint})
         r = self._request(path, data)
-        print("url is: {0} json is: {1}".format(data, r.text))
         if r is False:
             return r
         else:
