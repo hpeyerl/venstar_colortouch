@@ -225,7 +225,6 @@ class VenstarColorTouch:
         else:
             if r is not None:
                 if "success" in r.json():
-                    print("set_control Success!")
                     return True
                 else:
                     print("set_control Fail {0}.".format(r.json()))
