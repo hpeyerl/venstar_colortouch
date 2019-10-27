@@ -41,6 +41,9 @@ class VenstarColorTouch:
         self.addr = addr
         self.timeout = timeout
 
+        #Use Python standard logging class
+        self.log = logging.getLogger(__name__)
+
         if user != None and password != None:
             self.auth = HTTPDigestAuth(user, password)
         else:
@@ -84,6 +87,7 @@ class VenstarColorTouch:
         if j["api_ver"] >= MIN_API_VER:
             self._api_ver = j["api_ver"]
             self._type = j["type"]
+            self.model = j["model"]
             return True
         else:
             return False
@@ -103,12 +107,11 @@ class VenstarColorTouch:
                                    timeout=self.timeout,
                                    auth=self.auth)
         except Exception as ex:
-            print("Error requesting {uri} from Venstar ColorTouch.".format(uri=uri))
-            print(ex)
+            self.log.exception("Error requesting {uri} from Venstar ColorTouch.".format(uri=uri))
             return False
 
         if not req.ok:
-            print("Connection error logging into Venstar ColorTouch. Status Code: {status}".format(status=req.status_code))
+            self.log.error("Connection error logging into Venstar ColorTouch. Status Code: {status}".format(status=req.status_code))
             return False
        
         return req
@@ -136,7 +139,7 @@ class VenstarColorTouch:
         # Populate /settings stuff
         #
         self.name = self.get_info("name")
-        self.tempunits = self.get_info("tempunits")
+        self.display_tempunits = self.get_info("tempunits")
         self.away = self.get_info("away")
         self.schedule = self.get_info("schedule")
         # T5800 thermostat will not have hum_setpoint/dehum_setpoint in the JSON, so make
@@ -155,6 +158,23 @@ class VenstarColorTouch:
         else:
             self.hum_active = 0
 
+        #
+        # T2xxx thermostats (and maybe more) always use Celsius in the API regardless of the display units
+        # So handle this case accordingly
+        if 'T2' in self.model:
+            # Always degC
+            self.tempunits = self.TEMPUNITS_C
+            logging.debug('Detected thermostat model %s, using temp units of Celsius', self.model)
+        elif self.model == 'COLORTOUCH':
+            # Same as display units
+            self.tempunits = self.get_info("tempunits")
+        elif self.get_info('heattempmax') >= 40:
+            # Heat max temp over 40, only possible if degF
+            logging.warning('Unknown thermostat model %s, inferring API tempunits of Fahrenheit', self.model)
+            self.tempunits = self.TEMPUNITS_F
+        else:
+            logging.warning('Unknown thermostat model %s, inferring API tempunits of Celsius', self.model)
+            self.tempunits = self.TEMPUNITS_C
         return True
 
     def update_sensors(self):
@@ -227,13 +247,13 @@ class VenstarColorTouch:
                 if "success" in r.json():
                     return True
                 else:
-                    print("set_control Fail {0}.".format(r.json()))
+                    self.log.error("set_control Fail {0}.".format(r.json()))
                     return False
 
     def set_setpoints(self, heattemp, cooltemp):
         # Must not violate setpointdelta if we're in auto mode.
         if self.mode == self.MODE_AUTO and heattemp + self.setpointdelta > cooltemp:
-            print("In auto mode, the cool temp must be {0} " 
+            self.log.warning("In auto mode, the cool temp must be {0} "
                   "degrees warmer than the heat temp.".format(self.setpointdelta))
             return False
         self.heattemp = heattemp
@@ -262,10 +282,10 @@ class VenstarColorTouch:
         else:
             if r is not None:
                 if "success" in r.json():
-                    print("set_settings Success!")
+                    self.log.debug("set_settings Success!")
                     return True
                 else:
-                    print("set_settings Fail {0}.".format(r.text))
+                    self.log.error("set_settings Fail {0}.".format(r.text))
                     return False
 
     def set_tempunits(self, tempunits):
@@ -288,11 +308,11 @@ class VenstarColorTouch:
         else:
             if r is not None:
                 if "success" in r.json():
-                    print("set_away Success!")
+                    self.log.debug("set_away Success!")
                     self.update_info()
                     ret = True
                 else:
-                    print("set_away Fail {0}.".format(r.json()))
+                    self.log.error("set_away Fail {0}.".format(r.json()))
                     ret = False
         return ret
 
@@ -316,11 +336,11 @@ class VenstarColorTouch:
         else:
             if r is not None:
                 if "success" in r.json():
-                    print("set_schedule Success!")
+                    self.log.debug("set_schedule Success!")
                     self.update_info()
                     ret = True
                 else:
-                    print("set_schedule Fail {0}.".format(r.json()))
+                    self.log.error("set_schedule Fail {0}.".format(r.json()))
                     ret = False
         return ret
 
