@@ -1,5 +1,6 @@
 from __future__ import print_function
 import os,sys
+import logging
 import venstarcolortouch
 import time
 
@@ -7,6 +8,9 @@ def usage():
     print("Usage: {0} <ip addr>".format(sys.argv[0]))
 
 def test():
+    # Initialize logging with level DEBUG
+    logging.basicConfig(level=logging.DEBUG)
+
     if len(sys.argv) < 1:
         usage()
         return False
