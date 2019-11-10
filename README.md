@@ -85,6 +85,8 @@ AWAY_AWAY
 
 There are ```update_*``` functions which update local copies of various pieces of data.  Then there are ```get_*``` functions for retrieving that data and finally ```set_*``` functions for changing writable settings.
 
+* ```update_info()``` - Update the control state of the thermostat. **Must be called at least once before any set_ functions.**
+
 * ```update_sensors()``` - Update the state of indoor and outdoor temperature sensors.
 
 * ```get_runtimes()``` - Gather runtime data.
