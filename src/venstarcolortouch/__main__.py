@@ -16,11 +16,16 @@ def test():
         return False
 
     a = sys.argv[1]
-    
-    if len(sys.argv) >= 3: 
+
+    if len(sys.argv) >= 3:
         proto = sys.argv[2]
     else:
         proto = 'http'
+
+    if len(sys.argv) == 4:
+        pin = sys.argv[3]
+    else:
+        pin = None
 
     if len(sys.argv) == 5:
         user = sys.argv[3]
@@ -28,10 +33,10 @@ def test():
     else:
         user = None
         pwd = None
-    
+
     print ("Testing with IP: {0}".format(a))
 
-    ct = venstarcolortouch.VenstarColorTouch(a, timeout=5, proto=proto, user=user, password=pwd)
+    ct = venstarcolortouch.VenstarColorTouch(a, timeout=5, proto=proto, user=user, password=pwd, pin=pin)
     print("logging in...")
     if ct.login() is True:
         print("Login successful. API: {0} Type: {1}".format(ct._api_ver,ct._type))

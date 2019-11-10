@@ -10,7 +10,7 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 MIN_API_VER=3
 
 class VenstarColorTouch:
-    def __init__(self, addr, timeout, user=None, password=None, proto='http', SSLCert=False):
+    def __init__(self, addr, timeout, user=None, password=None, pin=None, proto='http', SSLCert=False):
         #API Constants
         self.MODE_OFF = 0
         self.MODE_HEAT = 1
@@ -44,16 +44,23 @@ class VenstarColorTouch:
         #Use Python standard logging class
         self.log = logging.getLogger(__name__)
 
+        #Preprocess authentication related parameters
+        if pin is not None:
+            self.pin = str(pin).zfill(4)
+        else:
+            self.pin = None
+
         if user != None and password != None:
             self.auth = HTTPDigestAuth(user, password)
         else:
             self.auth = None
 
-        self.proto = proto 
+        self.proto = proto
         self.SSLCert = SSLCert
 
         #Initialize State
         self.status = {}
+        self.model = None
         self._api_ver = None
         self._type = None
         self._info = None
@@ -82,6 +89,7 @@ class VenstarColorTouch:
     def login(self):
         r = self._request("/")
         if r is False:
+            self.log.error("Failed to request thermostat info in login")
             return r
         j = r.json()
         if j["api_ver"] >= MIN_API_VER:
@@ -90,21 +98,28 @@ class VenstarColorTouch:
             self.model = j["model"]
             return True
         else:
+            self.log.error("Unsupported API version: %s", j["api_ver"])
             return False
 
     def _request(self, path, data=None):
-        uri = "{proto}://{addr}/{path}".format(proto=self.proto, addr=self.addr, path=path)
+        # All calls to _request must have leading slash in path
+        uri = "{proto}://{addr}{path}".format(proto=self.proto, addr=self.addr, path=path)
+        params = {}
+        if self.pin:
+            params['pin'] = self.pin
         try:
             if data is not None:
-                req = requests.post(uri, 
+                req = requests.post(uri,
                                     verify=self.SSLCert,
                                     timeout=self.timeout,
                                     data=data,
+                                    params=params,
                                     auth=self.auth)
             else:
                 req = requests.get(uri,
                                    verify=self.SSLCert,
                                    timeout=self.timeout,
+                                   params=params,
                                    auth=self.auth)
         except Exception as ex:
             self.log.exception("Error requesting {uri} from Venstar ColorTouch.".format(uri=uri))
@@ -113,11 +128,18 @@ class VenstarColorTouch:
         if not req.ok:
             self.log.error("Connection error logging into Venstar ColorTouch. Status Code: {status}".format(status=req.status_code))
             return False
-       
+
         return req
 
     def update_info(self):
-        r = self._request("query/info")
+        # Model number (set during login) *required* for this function
+        if self.model is None:
+            self.log.debug("update_info() called without login(), executing login()")
+            if not self.login():
+                self.log.error("Login failed during update_info() call!")
+                return False
+
+        r = self._request("/query/info")
 
         if r is False:
             return r
@@ -144,16 +166,16 @@ class VenstarColorTouch:
         self.schedule = self.get_info("schedule")
         # T5800 thermostat will not have hum_setpoint/dehum_setpoint in the JSON, so make
         # it optional
-        if 'hum_setpoint' in self._info:
+        if "hum_setpoint" in self._info:
           self.hum_setpoint = self.get_info("hum_setpoint")
         else:
           self.hum_setpoint = None
-        if 'dehum_setpoint' in self._info:
+        if "dehum_setpoint" in self._info:
           self.dehum_setpoint = self.get_info("dehum_setpoint")
         else:
           self.dehum_setpoint = None
         #
-        if 'hum_active' in self._info:
+        if "hum_active" in self._info:
             self.hum_active = self.get_info("hum_active")
         else:
             self.hum_active = 0
@@ -161,25 +183,24 @@ class VenstarColorTouch:
         #
         # T2xxx thermostats (and maybe more) always use Celsius in the API regardless of the display units
         # So handle this case accordingly
-        if 'T2' in self.model:
+        if "T2" in self.model:
             # Always degC
             self.tempunits = self.TEMPUNITS_C
-            logging.debug('Detected thermostat model %s, using temp units of Celsius', self.model)
-        elif self.model == 'COLORTOUCH':
+            logging.debug("Detected thermostat model %s, using temp units of Celsius", self.model)
+        elif self.model == "COLORTOUCH":
             # Same as display units
             self.tempunits = self.get_info("tempunits")
-        elif self.get_info('heattempmax') >= 40:
+        elif self.get_info("heattempmax") >= 40:
             # Heat max temp over 40, only possible if degF
-            logging.warning('Unknown thermostat model %s, inferring API tempunits of Fahrenheit', self.model)
+            logging.warning("Unknown thermostat model %s, inferring API tempunits of Fahrenheit", self.model)
             self.tempunits = self.TEMPUNITS_F
         else:
-            logging.warning('Unknown thermostat model %s, inferring API tempunits of Celsius', self.model)
+            logging.warning("Unknown thermostat model %s, inferring API tempunits of Celsius", self.model)
             self.tempunits = self.TEMPUNITS_C
         return True
 
     def update_sensors(self):
-        r = self._request("query/sensors")
-
+        r = self._request("/query/sensors")
         if r is False:
             return r
         self._sensors = r.json()
@@ -188,7 +209,7 @@ class VenstarColorTouch:
     # returns a list of all runtime records. get_runtimes()[-1] should be the last one.
     # runtimes are updated every day (86400 seconds).
     def get_runtimes(self):
-        r = self._request("query/runtimes")
+        r = self._request("/query/runtimes")
         if r is False:
             return r
         else:
@@ -215,16 +236,16 @@ class VenstarColorTouch:
             return None
 
     def get_indoor_temp(self):
-        return self.get_thermostat_sensor('temp')
+        return self.get_thermostat_sensor("temp")
 
     def get_outdoor_temp(self):
-        return self.get_outdoor_sensor('temp')
+        return self.get_outdoor_sensor("temp")
 
     def get_indoor_humidity(self):
-        return self.get_thermostat_sensor('hum')
+        return self.get_thermostat_sensor("hum")
 
     def get_alerts(self):
-        r = self._request("query/alerts")
+        r = self._request("/query/alerts")
         if r is False:
             return r
         else:
@@ -236,6 +257,7 @@ class VenstarColorTouch:
     # to set them.
     def set_control(self):
         if self.mode is None:
+            self.log.error("update_info() must be called before controls may be set, aborting!")
             return False
         path="/control"
         data = urllib.parse.urlencode({'mode':self.mode, 'fan':self.fan, 'heattemp':self.heattemp, 'cooltemp':self.cooltemp})
@@ -273,6 +295,7 @@ class VenstarColorTouch:
     #
     def set_settings(self):
         if self.tempunits is None:
+            self.log.error("update_info() must be called before settings may be set, aborting!")
             return False
         path="/settings"
         data = urllib.parse.urlencode({'tempunits':self.tempunits, 'hum_setpoint':self.hum_setpoint, 'dehum_setpoint':self.dehum_setpoint})
@@ -293,6 +316,13 @@ class VenstarColorTouch:
         return self.set_settings()
 
     def set_away(self, away):
+        if self.away is None:
+            self.log.error("update_info() must be called before away mode may be changed, aborting!")
+            return False
+        if not self._type.lower() == "residential":
+            self.log.error("Away mode is not supported on commercial thermostat models.")
+            return False
+
         if self.away == away:
             return True
         if self.schedule == 1:
@@ -320,6 +350,10 @@ class VenstarColorTouch:
     # We can't change any settings while the schedule is active so we can't use set_settings()
     #
     def set_schedule(self, schedule):
+        if self.schedule is None:
+            self.log.error("update_info() must be called before schedule state may be changed, aborting!")
+            return False
+
         if (self.schedule == schedule):
             return True
         #
@@ -345,9 +379,15 @@ class VenstarColorTouch:
         return ret
 
     def set_hum_setpoint(self, hum_setpoint):
+        if self.hum_setpoint is None:
+            self.log.warning("No humidifier support detected, ignoring set_hum_setpoint call!")
+            return False
         self.hum_setpoint = hum_setpoint
         return self.set_settings()
 
     def set_dehum_setpoint(self, dehum_setpoint):
+        if self.dehum_setpoint is None:
+            self.log.warning("No dehumidification control support detected, ignoring set_dehum_setpoint call!")
+            return False
         self.dehum_setpoint = dehum_setpoint
         return self.set_settings()
