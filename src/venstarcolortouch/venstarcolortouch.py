@@ -256,15 +256,8 @@ class VenstarColorTouch:
             alerts=r.json()
             return alerts["alerts"][0]
 
-    # The /control endpoint requires heattemp/cooltemp in each message, even if you're just turning
-    # the fan on/off or setting the mode. So we retrieve everything from self and use accessors
-    # to set them.
-    def set_control(self):
-        if self.mode is None:
-            self.log.error("update_info() must be called before controls may be set, aborting!")
-            return False
+    def set_control(self, data):
         path="/control"
-        data = urllib.parse.urlencode({'mode':self.mode, 'fan':self.fan, 'heattemp':self.heattemp, 'cooltemp':self.cooltemp})
         r = self._request(path, data)
         if r is False:
             return r
@@ -281,6 +274,12 @@ class VenstarColorTouch:
                 self.log.error("Failed to decode JSON: %s", error.msg)
                 return False
 
+    # When setting MODE, you must also set heattemp/cooltemp.
+    # The set of legal operations is:
+    # When setting fan, only set fan.
+    # When setting heat/cool, set both heat cool and nothing else.
+    # When setting mode, set mode, heat and cool.
+                
     def set_setpoints(self, heattemp, cooltemp):
         # Must not violate setpointdelta if we're in auto mode.
         if self.mode == self.MODE_AUTO and heattemp + self.setpointdelta > cooltemp:
@@ -289,15 +288,18 @@ class VenstarColorTouch:
             return False
         self.heattemp = heattemp
         self.cooltemp = cooltemp
-        return self.set_control()
+        data = urllib.parse.urlencode({'heattemp':self.heattemp, 'cooltemp':self.cooltemp})        
+        return self.set_control(data)
 
     def set_mode(self, mode):
         self.mode = mode
-        return self.set_control()
+        data = urllib.parse.urlencode({'mode': self.mode, 'heattemp':self.heattemp, 'cooltemp':self.cooltemp})
+        return self.set_control(data)
 
     def set_fan(self, fan):
         self.fan = fan
-        return self.set_control()
+        data = urllib.parse.urlencode({'fan': self.fan})
+        return self.set_control(data)
 
     #
     # set_settings can't change the schedule or away while schedule is on, so no point in trying.
