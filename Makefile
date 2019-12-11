@@ -44,10 +44,10 @@ testpypi:
 	find venv -name "*${PKG}*"
 		
 upload_test:
-	twine upload -r test dist/${PKG}-${VERSION}*
+	venv/bin/twine upload -r test dist/${PKG}-${VERSION}*
 
 upload_real:
-	twine upload -r pypi dist/${PKG}-${VERSION}*
+	venv/bin/twine upload -r pypi dist/${PKG}-${VERSION}*
 
 show.%: 
 	@echo $*=$($*)
