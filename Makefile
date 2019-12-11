@@ -29,7 +29,7 @@ test:
 	# but if I install them in venv we get updated versions.  This is to
 	# resolve long_description_content_type issue.
 	#
-	pip install -U twine wheel setuptools
+	venv/bin/pip install -U twine wheel setuptools
 	venv/bin/pip -v install dist/${PKG}-${VERSION}.tar.gz
 	find venv -name "*${PKG}*"
 
