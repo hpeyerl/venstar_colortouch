@@ -263,16 +263,16 @@ class VenstarColorTouch:
             return r
         else:
             if r is not None:
-            try:
-                self._info=r.json()
-                if "success" in r.json():
-                    return True
-                else:
-                    self.log.error("set_control Fail {0}.".format(r.json()))
+                try:
+                    self._info=r.json()
+                    if "success" in r.json():
+                        return True
+                    else:
+                        self.log.error("set_control Fail {0}.".format(r.json()))
+                        return False
+                except json.decoder.JSONDecodeError as error:
+                    self.log.error("Failed to decode JSON: %s", error.msg)
                     return False
-            except json.decoder.JSONDecodeError as error:
-                self.log.error("Failed to decode JSON: %s", error.msg)
-                return False
 
     # When setting MODE, you must also set heattemp/cooltemp.
     # The set of legal operations is:

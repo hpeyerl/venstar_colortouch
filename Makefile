@@ -7,7 +7,7 @@ PKG:=venstarcolortouch
 # can't handle the import so force the version.  XXX(hp).
 #
 #VERSION:=${shell ${PYTHON} src/${PKG}/__init__.py}
-VERSION=0.10
+VERSION=0.11
 
 all: clean build test
 
@@ -29,7 +29,7 @@ test:
 	# but if I install them in venv we get updated versions.  This is to
 	# resolve long_description_content_type issue.
 	#
-	pip install -U twine wheel setuptools
+	venv/bin/pip install -U twine wheel setuptools
 	venv/bin/pip -v install dist/${PKG}-${VERSION}.tar.gz
 	find venv -name "*${PKG}*"
 
@@ -44,10 +44,10 @@ testpypi:
 	find venv -name "*${PKG}*"
 		
 upload_test:
-	twine upload -r test dist/${PKG}-${VERSION}*
+	venv/bin/twine upload -r test dist/${PKG}-${VERSION}*
 
 upload_real:
-	twine upload -r pypi dist/${PKG}-${VERSION}*
+	venv/bin/twine upload -r pypi dist/${PKG}-${VERSION}*
 
 show.%: 
 	@echo $*=$($*)
