@@ -95,7 +95,10 @@ class VenstarColorTouch:
         if j["api_ver"] >= MIN_API_VER:
             self._api_ver = j["api_ver"]
             self._type = j["type"]
-            self.model = j["model"]
+            if "model" in j:
+                self.model = j["model"]
+            else:
+                self.model = "COLORTOUCH"
             return True
         else:
             self.log.error("Unsupported API version: %s", j["api_ver"])
