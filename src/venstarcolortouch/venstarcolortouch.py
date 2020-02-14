@@ -169,7 +169,8 @@ class VenstarColorTouch:
         #
         self.name = self.get_info("name")
         self.display_tempunits = self.get_info("tempunits")
-        self.away = self.get_info("away")
+         if self._type != "commercial":  #Commercial thermostats don't support "away"
+          self.away = self.get_info("away")
         self.schedule = self.get_info("schedule")
         # T5800 thermostat will not have hum_setpoint/dehum_setpoint in the JSON, so make
         # it optional
@@ -194,7 +195,7 @@ class VenstarColorTouch:
             # Always degC
             self.tempunits = self.TEMPUNITS_C
             logging.debug("Detected thermostat model %s, using temp units of Celsius", self.model)
-        elif self.model == "COLORTOUCH":
+        elif self.model == "VYG-4900-VEN" or self.model == "VYG-4800-VEN" or self.model == "COLORTOUCH":
             # Same as display units
             self.tempunits = self.get_info("tempunits")
         elif self.get_info("heattempmax") >= 40:
