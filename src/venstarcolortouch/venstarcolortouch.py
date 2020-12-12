@@ -169,7 +169,7 @@ class VenstarColorTouch:
         #
         self.name = self.get_info("name")
         self.display_tempunits = self.get_info("tempunits")
-         if self._type != "commercial":  #Commercial thermostats don't support "away"
+        if self._type != "commercial":  #Commercial thermostats don't support "away"
           self.away = self.get_info("away")
         self.schedule = self.get_info("schedule")
         # T5800 thermostat will not have hum_setpoint/dehum_setpoint in the JSON, so make
@@ -227,24 +227,25 @@ class VenstarColorTouch:
     def get_info(self, attr):
         return self._info[attr]
 
-    def get_thermostat_sensor(self, attr):
+    def get_sensor(self, name, attr):
         if self._sensors != None and self._sensors["sensors"] != None and len(self._sensors["sensors"]) > 0:
-            # 'hum' (humidity) sensor is not present on T5800 series
-            if attr in self._sensors["sensors"][0]:
-              return self._sensors["sensors"][0][attr]
-            else:
-              return None
-        else:
-            return None
+            for sensor in self._sensors["sensors"]:
+                # 'hum' (humidity) sensor is not present on T5800 series
+                if sensor["name"] == name and attr in sensor:
+                    return sensor[attr]
+        return None
+
+    def get_thermostat_sensor(self, attr):
+        return self.get_sensor("Thermostat", attr)
 
     def get_outdoor_sensor(self, attr):
-        if self._sensors != None and self._sensors["sensors"] != None and len(self._sensors["sensors"]) > 0:
-            return self._sensors["sensors"][1][attr]
-        else:
-            return None
+        return self.get_sensor("Outdoor", attr)
 
     def get_indoor_temp(self):
-        return self.get_thermostat_sensor("temp")
+        temp = self.get_sensor("Space Temp", "temp")
+        if temp == None:
+            temp = self.get_sensor("Thermostat", "temp")
+        return temp
 
     def get_outdoor_temp(self):
         return self.get_outdoor_sensor("temp")

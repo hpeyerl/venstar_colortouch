@@ -54,6 +54,7 @@ def test():
         print("Was not able to get sensors")
 
     print("Indoor temp is {t} and humidity is {h}".format(t=ct.get_indoor_temp(),h=ct.get_indoor_humidity()))
+    print("Outdoor temp is {t}".format(t=ct.get_outdoor_temp()))
 
     print("Runtimes: {0}".format(ct.get_runtimes()))
 
