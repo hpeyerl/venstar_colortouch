@@ -231,9 +231,17 @@ class VenstarColorTouch:
         if self._sensors != None and self._sensors["sensors"] != None and len(self._sensors["sensors"]) > 0:
             for sensor in self._sensors["sensors"]:
                 # 'hum' (humidity) sensor is not present on T5800 series
-                if sensor["name"] == name and attr in sensor:
+                if "name" in sensor and sensor["name"] == name and attr in sensor:
                     return sensor[attr]
         return None
+
+    def get_sensor_list(self):
+        names = [];
+        if self._sensors != None and self._sensors["sensors"] != None and len(self._sensors["sensors"]) > 0:
+            for sensor in self._sensors["sensors"]:
+                if "name" in sensor:
+                    names.append(sensor["name"])
+        return names
 
     def get_thermostat_sensor(self, attr):
         return self.get_sensor("Thermostat", attr)
