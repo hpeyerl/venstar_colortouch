@@ -37,6 +37,7 @@ class VenstarColorTouch:
         self.AWAY_HOME = 0
         self.AWAY_AWAY = 1
 
+        self.sensor_names = { "Control": [ "Space Temp" ], "Local": [ "Thermostat" ] }
         self.sensor_types = [ "Control", "Local", "Outdoor", "Remote", "Return", "Supply" ]
 
         #Input parameters
@@ -237,9 +238,9 @@ class VenstarColorTouch:
                     return sensor[attr]
                 elif "name" in sensor and sensor["name"] == name and attr not in sensor and attr == "type" and sensor["name"] in self.sensor_types:
                     return sensor["name"]
-                elif "name" in sensor and sensor["name"] == name and attr not in sensor and attr == "type" and sensor["name"] == "Space Temp":
+                elif "name" in sensor and sensor["name"] == name and attr not in sensor and attr == "type" and sensor["name"] in self.sensor_names["Control"]:
                     return "Control"
-                elif "name" in sensor and sensor["name"] == name and attr not in sensor and attr == "type" and sensor["name"] == "Thermostat":
+                elif "name" in sensor and sensor["name"] == name and attr not in sensor and attr == "type" and sensor["name"] in self.sensor_names["Local"]:
                     return "Local"
         return None
 
@@ -253,25 +254,31 @@ class VenstarColorTouch:
                             names.append(sensor["name"])
                         elif type not in sensor and sensor["name"] in self.sensor_types and sensor["name"] == type:
                             names.append(sensor["name"])
-                        elif type not in sensor and sensor["name"] == "Space Temp" and type == "Control":
+                        elif type not in sensor and sensor["name"] in self.sensor_names["Control"] and type == "Control":
                             names.append(sensor["name"])
-                        elif type not in sensor and sensor["name"] == "Thermostat" and type == "Local":
+                        elif type not in sensor and sensor["name"] in self.sensor_names["Local"]  and type == "Local":
                             names.append(sensor["name"])
                     else:
                         names.append(sensor["name"])
         return names
 
     def get_thermostat_sensor(self, attr):
-        return self.get_sensor("Thermostat", attr)
+        sensors = self.get_sensor_list("Local")
+        if len(sensors) > 0:
+            return self.get_sensor(sensors[0], attr)
+        return None
 
     def get_outdoor_sensor(self, attr):
-        return self.get_sensor("Outdoor", attr)
+        sensors = self.get_sensor_list("Outdoor")
+        if len(sensors) > 0:
+            return self.get_sensor(sensors[0], attr)
+        return None
 
     def get_indoor_temp(self):
-        temp = self.get_sensor("Space Temp", "temp")
-        if temp == None:
-            temp = self.get_sensor("Thermostat", "temp")
-        return temp
+        sensors = self.get_sensor_list("Control") + self.get_sensor_list("Local")
+        if len(sensors) > 0:
+            return self.get_sensor(sensors[0], "temp")
+        return None
 
     def get_outdoor_temp(self):
         return self.get_outdoor_sensor("temp")
