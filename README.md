@@ -120,7 +120,20 @@ There are ```update_*``` functions which update local copies of various pieces o
     ```python
     get_info("heattemp")
     ```
-    
+
+* ```get_sensor(name, attr)``` Get a specific named sensor's value. In case of duplicate names, the first matching sensor will be returned.
+
+    ```python
+    get_sensor("Outdoor", "temp")
+    ```
+
+* ```get_sensor_list(type)``` Get a list of sensor names, optionally filtered by type. Type is one of "Control", "Local", "Outdoor", "Remote", "Return", or "Supply".
+
+    ```python
+    get_sensor_list()
+    get_sensor_list("Remote")
+    ```
+
 *  ```get_thermostat_sensor(attr)``` Get a specific thermostat sensor's value.
     
     ```python

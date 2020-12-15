@@ -37,6 +37,9 @@ class VenstarColorTouch:
         self.AWAY_HOME = 0
         self.AWAY_AWAY = 1
 
+        self.sensor_names = { "Control": [ "Space Temp" ], "Local": [ "Thermostat" ] }
+        self.sensor_types = [ "Control", "Local", "Outdoor", "Remote", "Return", "Supply" ]
+
         #Input parameters
         self.addr = addr
         self.timeout = timeout
@@ -169,7 +172,7 @@ class VenstarColorTouch:
         #
         self.name = self.get_info("name")
         self.display_tempunits = self.get_info("tempunits")
-         if self._type != "commercial":  #Commercial thermostats don't support "away"
+        if self._type != "commercial":  #Commercial thermostats don't support "away"
           self.away = self.get_info("away")
         self.schedule = self.get_info("schedule")
         # T5800 thermostat will not have hum_setpoint/dehum_setpoint in the JSON, so make
@@ -227,24 +230,55 @@ class VenstarColorTouch:
     def get_info(self, attr):
         return self._info[attr]
 
-    def get_thermostat_sensor(self, attr):
+    def get_sensor(self, name, attr):
         if self._sensors != None and self._sensors["sensors"] != None and len(self._sensors["sensors"]) > 0:
-            # 'hum' (humidity) sensor is not present on T5800 series
-            if attr in self._sensors["sensors"][0]:
-              return self._sensors["sensors"][0][attr]
-            else:
-              return None
-        else:
-            return None
+            for sensor in self._sensors["sensors"]:
+                # 'hum' (humidity) sensor is not present on T5800 series
+                if "name" in sensor and sensor["name"] == name and attr in sensor:
+                    return sensor[attr]
+                elif "name" in sensor and sensor["name"] == name and attr not in sensor and attr == "type" and sensor["name"] in self.sensor_types:
+                    return sensor["name"]
+                elif "name" in sensor and sensor["name"] == name and attr not in sensor and attr == "type" and sensor["name"] in self.sensor_names["Control"]:
+                    return "Control"
+                elif "name" in sensor and sensor["name"] == name and attr not in sensor and attr == "type" and sensor["name"] in self.sensor_names["Local"]:
+                    return "Local"
+        return None
+
+    def get_sensor_list(self, type=None):
+        names = [];
+        if self._sensors != None and self._sensors["sensors"] != None and len(self._sensors["sensors"]) > 0:
+            for sensor in self._sensors["sensors"]:
+                if "name" in sensor:
+                    if type != None:
+                        if "type" in sensor and sensor["type"] == type:
+                            names.append(sensor["name"])
+                        elif type not in sensor and sensor["name"] in self.sensor_types and sensor["name"] == type:
+                            names.append(sensor["name"])
+                        elif type not in sensor and sensor["name"] in self.sensor_names["Control"] and type == "Control":
+                            names.append(sensor["name"])
+                        elif type not in sensor and sensor["name"] in self.sensor_names["Local"]  and type == "Local":
+                            names.append(sensor["name"])
+                    else:
+                        names.append(sensor["name"])
+        return names
+
+    def get_thermostat_sensor(self, attr):
+        sensors = self.get_sensor_list("Local")
+        if len(sensors) > 0:
+            return self.get_sensor(sensors[0], attr)
+        return None
 
     def get_outdoor_sensor(self, attr):
-        if self._sensors != None and self._sensors["sensors"] != None and len(self._sensors["sensors"]) > 0:
-            return self._sensors["sensors"][1][attr]
-        else:
-            return None
+        sensors = self.get_sensor_list("Outdoor")
+        if len(sensors) > 0:
+            return self.get_sensor(sensors[0], attr)
+        return None
 
     def get_indoor_temp(self):
-        return self.get_thermostat_sensor("temp")
+        sensors = self.get_sensor_list("Control") + self.get_sensor_list("Local")
+        if len(sensors) > 0:
+            return self.get_sensor(sensors[0], "temp")
+        return None
 
     def get_outdoor_temp(self):
         return self.get_outdoor_sensor("temp")

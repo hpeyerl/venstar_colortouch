@@ -54,7 +54,22 @@ def test():
         print("Was not able to get sensors")
 
     print("Indoor temp is {t} and humidity is {h}".format(t=ct.get_indoor_temp(),h=ct.get_indoor_humidity()))
+    print("Outdoor temp is {t}".format(t=ct.get_outdoor_temp()))
 
+    sensors=ct.get_sensor_list()
+    if sensors:
+        print("\nAll sensors:")
+        for sensor in sensors:
+            print("{s} temp is {t}, humidity is {h}, battery is {b}, and type is {x}".format(s=sensor,t=ct.get_sensor(sensor,"temp"),h=ct.get_sensor(sensor,"hum"),b=ct.get_sensor(sensor,"battery"),x=ct.get_sensor(sensor,"type")))
+
+    for type in ct.sensor_types:
+        sensors=ct.get_sensor_list(type)
+        if sensors:
+            print("\n{x} sensors:".format(x=type))
+            for sensor in sensors:
+                print("{s} temp is {t}, humidity is {h}, battery is {b}, and type is {x}".format(s=sensor,t=ct.get_sensor(sensor,"temp"),h=ct.get_sensor(sensor,"hum"),b=ct.get_sensor(sensor,"battery"),x=ct.get_sensor(sensor,"type")))
+
+    print()
     print("Runtimes: {0}".format(ct.get_runtimes()))
 
     curh=ct.get_info("heattemp")
