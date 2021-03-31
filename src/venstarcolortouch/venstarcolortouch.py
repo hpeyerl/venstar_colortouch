@@ -91,8 +91,8 @@ class VenstarColorTouch:
         self.dehum_setpoint = None
         self.hum_active = None
         self.security = None
-        self.spMin = None
-        self.spMax = None
+        self.sp_min = None
+        self.sp_max = None
 
     def login(self):
         r = self._request("/")
@@ -195,8 +195,8 @@ class VenstarColorTouch:
             self.hum_active = self.get_info("hum_active")
         else:
             self.hum_active = 0
-        self.spMin = self.get_info("cooltempmin")
-        self.spMax = self.get_info("heattempmax")
+        self.sp_min = self.get_info("cooltempmin")
+        self.sp_max = self.get_info("heattempmax")
 
         #
         # T2xxx thermostats (and maybe more) always use Celsius in the API regardless of the display units
@@ -371,18 +371,18 @@ class VenstarColorTouch:
         self.security = security
         return self.parse_response(r, 'set_security')
 
-    def set_setpoint_limits(self, spMax=None, spMin=None):
-        if (spMax == self.spMax and spMin == self.spMin) or (spMax is None and spMin is None):
+    def set_setpoint_limits(self, sp_max=None, sp_min=None):
+        if (sp_max == self.sp_max and sp_min == self.sp_min) or (sp_max is None and spMin is None):
             return True
         path = "/settings"
         # Make sure security is on
         if self.security == 0:
             self.set_security(1)
         sp_limit_data = {}
-        if spMax is not None:
-            sp_limit_data['spMax'] = spMax
-        if spMin is not None:
-            sp_limit_data['spMin'] = spMin
+        if sp_max is not None:
+            sp_limit_data['sp_max'] = sp_max
+        if sp_min is not None:
+            sp_limit_data['sp_min'] = sp_min
         data = urllib.parse.urlencode(sp_limit_data)
         r = self._request(path, data)
         return self.parse_reponse(r, 'set_setpoint_limits', update_info=True)
