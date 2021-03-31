@@ -380,9 +380,9 @@ class VenstarColorTouch:
             self.set_security(1)
         sp_limit_data = {}
         if sp_max is not None:
-            sp_limit_data['sp_max'] = sp_max
+            sp_limit_data['spMax'] = sp_max
         if sp_min is not None:
-            sp_limit_data['sp_min'] = sp_min
+            sp_limit_data['spMin'] = sp_min
         data = urllib.parse.urlencode(sp_limit_data)
         r = self._request(path, data)
         return self.parse_response(r, 'set_setpoint_limits', update_info=True)
