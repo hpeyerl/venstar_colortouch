@@ -372,7 +372,7 @@ class VenstarColorTouch:
         return self.parse_response(r, 'set_security')
 
     def set_setpoint_limits(self, sp_max=None, sp_min=None):
-        if (sp_max == self.sp_max and sp_min == self.sp_min) or (sp_max is None and spMin is None):
+        if (sp_max == self.sp_max and sp_min == self.sp_min) or (sp_max is None and sp_min is None):
             return True
         path = "/settings"
         # Make sure security is on
@@ -385,7 +385,7 @@ class VenstarColorTouch:
             sp_limit_data['sp_min'] = sp_min
         data = urllib.parse.urlencode(sp_limit_data)
         r = self._request(path, data)
-        return self.parse_reponse(r, 'set_setpoint_limits', update_info=True)
+        return self.parse_response(r, 'set_setpoint_limits', update_info=True)
 
     def set_tempunits(self, tempunits):
         self.tempunits = tempunits
