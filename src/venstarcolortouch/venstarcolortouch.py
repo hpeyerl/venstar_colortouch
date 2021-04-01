@@ -68,6 +68,7 @@ class VenstarColorTouch:
         self._type = None
         self._info = None
         self._sensors = None
+        self.alerts = None
         #
         # /control
         #
@@ -293,6 +294,12 @@ class VenstarColorTouch:
         else:
             alerts=r.json()
             return alerts["alerts"]
+
+    def update_alerts(self):
+        self.alerts = self.get_alerts()
+        if self.alerts:
+            return True
+        return False
 
     def set_control(self, data):
         path="/control"
