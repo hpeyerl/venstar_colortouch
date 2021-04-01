@@ -139,6 +139,21 @@ class VenstarColorTouch:
 
         return req
 
+    def update(self, alerts = True, info = True, runtimes = True, sensors = True):
+        if alerts:
+            if not self.update_alerts():
+                return False
+        if info:
+            if not self.update_info():
+                return False
+        if runtimes:
+            if not self.update_runtimes():
+                return False
+        if sensors:
+            if not self.update_sensors():
+                return False
+        return True
+
     def update_info(self):
         # Model number (set during login) *required* for this function
         if self.model is None:
