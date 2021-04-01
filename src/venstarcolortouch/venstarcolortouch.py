@@ -292,7 +292,7 @@ class VenstarColorTouch:
             return r
         else:
             alerts=r.json()
-            return alerts["alerts"][0]
+            return alerts["alerts"]
 
     def set_control(self, data):
         path="/control"
