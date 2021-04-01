@@ -70,6 +70,8 @@ class VenstarColorTouch:
         self._type = None
         self._info = None
         self._sensors = None
+        self.alerts = None
+        self.runtimes = None
         #
         # /control
         #
@@ -141,6 +143,21 @@ class VenstarColorTouch:
             return False
 
         return req
+
+    def update(self, alerts = True, info = True, runtimes = True, sensors = True):
+        if alerts:
+            if not self.update_alerts():
+                return False
+        if info:
+            if not self.update_info():
+                return False
+        if runtimes:
+            if not self.update_runtimes():
+                return False
+        if sensors:
+            if not self.update_sensors():
+                return False
+        return True
 
     def update_info(self):
         # Model number (set during login) *required* for this function
@@ -234,6 +251,12 @@ class VenstarColorTouch:
             runtimes=r.json()
             return runtimes["runtimes"]
 
+    def update_runtimes(self):
+        self.runtimes = self.get_runtimes()
+        if self.runtimes:
+            return True
+        return False
+
     def get_info(self, attr):
         return self._info[attr]
 
@@ -299,7 +322,13 @@ class VenstarColorTouch:
             return r
         else:
             alerts=r.json()
-            return alerts["alerts"][0]
+            return alerts["alerts"]
+
+    def update_alerts(self):
+        self.alerts = self.get_alerts()
+        if self.alerts:
+            return True
+        return False
 
     def parse_response(self, r, setting, update_info=False):
         if r is False or r is None:
