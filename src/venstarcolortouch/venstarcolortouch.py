@@ -69,6 +69,7 @@ class VenstarColorTouch:
         self._info = None
         self._sensors = None
         self.alerts = None
+        self.runtimes = None
         #
         # /control
         #
@@ -227,6 +228,12 @@ class VenstarColorTouch:
         else:
             runtimes=r.json()
             return runtimes["runtimes"]
+
+    def update_runtimes(self):
+        self.runtimes = self.get_runtimes()
+        if self.runtimes:
+            return True
+        return False
 
     def get_info(self, attr):
         return self._info[attr]
