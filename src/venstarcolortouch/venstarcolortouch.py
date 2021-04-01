@@ -27,6 +27,8 @@ class VenstarColorTouch:
         self.FANSTATE_ON = 1
         self.TEMPUNITS_F = 0
         self.TEMPUNITS_C = 1
+        self.SECURITY_OFF = 0
+        self.SECURITY_ON = 1
         self.SCHED_F = 0
         self.SCHED_C = 1
         self.SCHEDPART_MORNING = 0
@@ -88,6 +90,9 @@ class VenstarColorTouch:
         self.hum_setpoint = None
         self.dehum_setpoint = None
         self.hum_active = None
+        self.security = None
+        self.sp_min = None
+        self.sp_max = None
 
     def login(self):
         r = self._request("/")
@@ -190,6 +195,8 @@ class VenstarColorTouch:
             self.hum_active = self.get_info("hum_active")
         else:
             self.hum_active = 0
+        self.sp_min = self.get_info("cooltempmin")
+        self.sp_max = self.get_info("heattempmax")
 
         #
         # T2xxx thermostats (and maybe more) always use Celsius in the API regardless of the display units
@@ -294,30 +301,34 @@ class VenstarColorTouch:
             alerts=r.json()
             return alerts["alerts"][0]
 
+    def parse_response(self, r, setting, update_info=False):
+        if r is False or r is None:
+            return False
+        else:
+            try:
+                if "success" in r.json():
+                    self.log.debug("{0} Success!".format(setting))
+                    if update_info:
+                        self.update_info()
+                    return True
+                else:
+                    self.log.error("{0} Fail {1}.".format(setting, r.text))
+                    return False
+            except json.decoder.JSONDecodeError as error:
+                self.log.error("Failed to decode JSON: %s", error.msg)
+                return False
+
     def set_control(self, data):
         path="/control"
         r = self._request(path, data)
-        if r is False:
-            return r
-        else:
-            if r is not None:
-                try:
-                    self._info=r.json()
-                    if "success" in r.json():
-                        return True
-                    else:
-                        self.log.error("set_control Fail {0}.".format(r.json()))
-                        return False
-                except json.decoder.JSONDecodeError as error:
-                    self.log.error("Failed to decode JSON: %s", error.msg)
-                    return False
+        return self.parse_response(r, 'set_control')
 
     # When setting MODE, you must also set heattemp/cooltemp.
     # The set of legal operations is:
     # When setting fan, only set fan.
     # When setting heat/cool, set both heat cool and nothing else.
     # When setting mode, set mode, heat and cool.
-                
+
     def set_setpoints(self, heattemp, cooltemp):
         # Must not violate setpointdelta if we're in auto mode.
         if self.mode == self.MODE_AUTO and heattemp + self.setpointdelta > cooltemp:
@@ -326,7 +337,7 @@ class VenstarColorTouch:
             return False
         self.heattemp = heattemp
         self.cooltemp = cooltemp
-        data = urllib.parse.urlencode({'heattemp':self.heattemp, 'cooltemp':self.cooltemp})        
+        data = urllib.parse.urlencode({'heattemp':self.heattemp, 'cooltemp':self.cooltemp})
         return self.set_control(data)
 
     def set_mode(self, mode):
@@ -349,16 +360,32 @@ class VenstarColorTouch:
         path="/settings"
         data = urllib.parse.urlencode({'tempunits':self.tempunits, 'hum_setpoint':self.hum_setpoint, 'dehum_setpoint':self.dehum_setpoint})
         r = self._request(path, data)
-        if r is False:
-            return r
-        else:
-            if r is not None:
-                if "success" in r.json():
-                    self.log.debug("set_settings Success!")
-                    return True
-                else:
-                    self.log.error("set_settings Fail {0}.".format(r.text))
-                    return False
+        return self.parse_response(r, 'set_settings', update_info=True)
+
+    def set_security(self, security):
+        if security not in [self.SECURITY_ON, self.SECURITY_OFF]:
+            return False
+        path = "/settings"
+        data = urllib.parse.urlencode({'security': security})
+        r = self._request(path, data)
+        self.security = security
+        return self.parse_response(r, 'set_security')
+
+    def set_setpoint_limits(self, sp_max=None, sp_min=None):
+        if (sp_max == self.sp_max and sp_min == self.sp_min) or (sp_max is None and sp_min is None):
+            return True
+        path = "/settings"
+        # Make sure security is on
+        if self.security == 0:
+            self.set_security(1)
+        sp_limit_data = {}
+        if sp_max is not None:
+            sp_limit_data['spMax'] = sp_max
+        if sp_min is not None:
+            sp_limit_data['spMin'] = sp_min
+        data = urllib.parse.urlencode(sp_limit_data)
+        r = self._request(path, data)
+        return self.parse_response(r, 'set_setpoint_limits', update_info=True)
 
     def set_tempunits(self, tempunits):
         self.tempunits = tempunits
@@ -382,18 +409,7 @@ class VenstarColorTouch:
         path="/settings"
         data = urllib.parse.urlencode({'away':self.away})
         r = self._request(path, data)
-        if r is False:
-            ret = False
-        else:
-            if r is not None:
-                if "success" in r.json():
-                    self.log.debug("set_away Success!")
-                    self.update_info()
-                    ret = True
-                else:
-                    self.log.error("set_away Fail {0}.".format(r.json()))
-                    ret = False
-        return ret
+        return self.parse_response(r, 'set_away', update_info=True)
 
     #
     # We can't change any settings while the schedule is active so we can't use set_settings()
@@ -414,18 +430,7 @@ class VenstarColorTouch:
         path="/settings"
         data = urllib.parse.urlencode({'schedule':self.schedule})
         r = self._request(path, data)
-        if r is False:
-            ret = False
-        else:
-            if r is not None:
-                if "success" in r.json():
-                    self.log.debug("set_schedule Success!")
-                    self.update_info()
-                    ret = True
-                else:
-                    self.log.error("set_schedule Fail {0}.".format(r.json()))
-                    ret = False
-        return ret
+        return self.parse_response(r, 'set_schedule', update_info=True)
 
     def set_hum_setpoint(self, hum_setpoint):
         if self.hum_setpoint is None:
