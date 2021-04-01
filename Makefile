@@ -7,7 +7,7 @@ PKG:=venstarcolortouch
 # can't handle the import so force the version.  XXX(hp).
 #
 #VERSION:=${shell ${PYTHON} src/${PKG}/__init__.py}
-VERSION=0.13
+VERSION=0.14
 
 all: clean build test
 

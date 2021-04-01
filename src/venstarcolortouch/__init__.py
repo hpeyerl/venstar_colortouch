@@ -1,8 +1,8 @@
 import sys
 
-__version__ = "0.13"
+__version__ = "0.14"
 
-__uri__ = 'https://github.com/hpeyerl/venstarcolortouch'
+__uri__ = 'https://github.com/hpeyerl/venstar_colortouch'
 __title__ = "venstarcolortouch"
 __description__ = 'Interface Library for Venstar ColorTouch Thermostat API v5'
 __doc__ = __description__ + " <" + __uri__ + ">"
