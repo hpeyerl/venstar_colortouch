@@ -70,6 +70,8 @@ FANSTATE_OFF
 FANSTATE_ON
 TEMPUNITS_F
 TEMPUNITS_C
+SECURITY_OFF
+SECURITY_ON
 SCHED_F
 SCHED_C
 SCHEDPART_MORNING
@@ -135,7 +137,7 @@ There are ```update_*``` functions which update local copies of various pieces o
     ```
 
 *  ```get_thermostat_sensor(attr)``` Get a specific thermostat sensor's value.
-    
+
     ```python
     get_thermostat_sensor("temp")
     ```
@@ -158,7 +160,6 @@ There are ```update_*``` functions which update local copies of various pieces o
 * ```set_fan(fan)``` Set the Fan mode.
     * FAN_AUTO
     * FAN_ON
-
 * ```set_tempunits(tempunits)``` Set degrees to either Celsius or Fahrenheit
     * TEMPUNITS_F
     * TEMPUNITS_C
@@ -171,3 +172,8 @@ There are ```update_*``` functions which update local copies of various pieces o
 * ```set_hum_setpoint(hum_setpoint)``` Set humidifier Setpoint
 * ```set_dehum_setpoint(dehum_setpoint)``` Set dehumidifier Setpoint
 
+### T2100 Specific
+* ```set_security(security)``` Set the Security mode (whether or not setpoint limits are active).
+    * SECURITY_OFF
+    * SECURITY_ON
+* ```set_setpoint_limits(sp_max, sp_min)``` Set the maximum and minimum setpoint limits.
