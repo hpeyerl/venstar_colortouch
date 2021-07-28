@@ -222,7 +222,7 @@ class VenstarColorTouch:
             # Always degC
             self.tempunits = self.TEMPUNITS_C
             logging.debug("Detected thermostat model %s, using temp units of Celsius", self.model)
-        elif self.model == "VYG-4900-VEN" or self.model == "VYG-4800-VEN" or self.model == "COLORTOUCH":
+        elif self.model == "VYG-4900-VEN" or self.model == "VYG-4800-VEN"  or self.model == "VYG-3900" or self.model == "COLORTOUCH":
             # Same as display units
             self.tempunits = self.get_info("tempunits")
         elif self.get_info("heattempmax") >= 40:
