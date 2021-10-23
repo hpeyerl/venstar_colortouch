@@ -260,6 +260,12 @@ class VenstarColorTouch:
     def get_info(self, attr):
         return self._info[attr]
 
+    def get_api_ver(self):
+        return self._api_ver
+
+    def get_type(self):
+        return self._type
+
     def get_sensor(self, name, attr):
         if self._sensors != None and self._sensors["sensors"] != None and len(self._sensors["sensors"]) > 0:
             for sensor in self._sensors["sensors"]:

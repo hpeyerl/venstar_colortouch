@@ -81,6 +81,9 @@ def test():
     ct.update_info()
     print("Heat setpoint is {h}\nCool setpoint is {c}\n".format(h=ct.get_info("heattemp"),c=ct.get_info("cooltemp")))
 
+    print("API Version is {v}".format(v=ct.get_api_ver()))
+    print("Thermostat Type is {t}".format(t=ct.get_type()))
+
     return True
 
 test()
