@@ -216,13 +216,13 @@ class VenstarColorTouch:
         self.sp_max = self.get_info("heattempmax")
 
         #
-        # T2xxx thermostats (and maybe more) always use Celsius in the API regardless of the display units
+        # T2xxx, T3xxx thermostats (and maybe more) always use Celsius in the API regardless of the display units
         # So handle this case accordingly
-        if "T2" in self.model:
+        if self.model.startswith(("T2", "T3")):
             # Always degC
             self.tempunits = self.TEMPUNITS_C
             logging.debug("Detected thermostat model %s, using temp units of Celsius", self.model)
-        elif self.model == "VYG-4900-VEN" or self.model == "VYG-4800-VEN"  or self.model == "VYG-3900" or self.model == "COLORTOUCH":
+        elif self.model in ["VYG-4900-VEN", "VYG-4800-VEN", "VYG-3900", "COLORTOUCH"]:
             # Same as display units
             self.tempunits = self.get_info("tempunits")
         elif self.get_info("heattempmax") >= 40:
