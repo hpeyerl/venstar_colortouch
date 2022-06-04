@@ -193,20 +193,12 @@ class VenstarColorTouch:
         # Populate /settings stuff
         #
         self.name = self.get_info("name")
-        self.display_tempunits = self.get_info("tempunits")
+        self.display_tempunits = self.get_settings("tempunits")
         if self._type != "commercial":  #Commercial thermostats don't support "away"
-          self.away = self.get_info("away")
-        self.schedule = self.get_info("schedule")
-        # T5800 thermostat will not have hum_setpoint/dehum_setpoint in the JSON, so make
-        # it optional
-        if "hum_setpoint" in self._info:
-          self.hum_setpoint = self.get_info("hum_setpoint")
-        else:
-          self.hum_setpoint = None
-        if "dehum_setpoint" in self._info:
-          self.dehum_setpoint = self.get_info("dehum_setpoint")
-        else:
-          self.dehum_setpoint = None
+          self.away = self.get_settings("away")
+        self.schedule = self.get_settings("schedule")
+        self.hum_setpoint = self.get_settings("hum_setpoint")
+        self.dehum_setpoint = self.get_settings("dehum_setpoint")
         #
         if "hum_active" in self._info:
             self.hum_active = self.get_info("hum_active")
@@ -224,7 +216,7 @@ class VenstarColorTouch:
             logging.debug("Detected thermostat model %s, using temp units of Celsius", self.model)
         elif self.model in ["VYG-4900-VEN", "VYG-4800-VEN", "VYG-3900", "COLORTOUCH"]:
             # Same as display units
-            self.tempunits = self.get_info("tempunits")
+            self.tempunits = self.display_tempunits
         elif self.get_info("heattempmax") >= 40:
             # Heat max temp over 40, only possible if degF
             logging.warning("Unknown thermostat model %s, inferring API tempunits of Fahrenheit", self.model)
@@ -259,6 +251,20 @@ class VenstarColorTouch:
 
     def get_info(self, attr):
         return self._info[attr]
+
+    def get_settings(self, attr):
+        if attr in self._info:
+            return self.get_info(attr)
+
+        # some models only return settings at this endpoint
+        r = self._request(f"/settings?q={attr}") 
+        if not r:
+            return None
+
+        setting = r.json()[attr]
+        self._info[attr] = setting
+
+        return setting
 
     def get_api_ver(self):
         return self._api_ver
@@ -393,7 +399,7 @@ class VenstarColorTouch:
             self.log.error("update_info() must be called before settings may be set, aborting!")
             return False
         path="/settings"
-        data = urllib.parse.urlencode({'tempunits':self.tempunits, 'hum_setpoint':self.hum_setpoint, 'dehum_setpoint':self.dehum_setpoint})
+        data = urllib.parse.urlencode({'tempunits':self.display_tempunits, 'hum_setpoint':self.hum_setpoint, 'dehum_setpoint':self.dehum_setpoint})
         r = self._request(path, data)
         return self.parse_response(r, 'set_settings', update_info=True)
 
