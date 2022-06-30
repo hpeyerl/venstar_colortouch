@@ -8,6 +8,10 @@ from requests.auth import HTTPDigestAuth
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 MIN_API_VER=3
+# Venstar developers fixed a bug for some models with the 5.28 firmware
+#   version. The new firmware correctly reports temperatures in the
+#   configured temperature unit.
+UNIT_BUG_FIX_VERSION=5.28
 
 class VenstarColorTouch:
     def __init__(self, addr, timeout, user=None, password=None, pin=None, proto='http', SSLCert=False):
@@ -70,6 +74,7 @@ class VenstarColorTouch:
         self._type = None
         self._info = None
         self._sensors = None
+        self._firmware_ver = None
         self.alerts = None
         self.runtimes = None
         #
@@ -104,6 +109,8 @@ class VenstarColorTouch:
         j = r.json()
         if j["api_ver"] >= MIN_API_VER:
             self._api_ver = j["api_ver"]
+            self._firmware_ver = float(j["firmware"])
+            logging.debug("api_ver: %s" % self._api_ver)
             self._type = j["type"]
             if "model" in j:
                 self.model = j["model"]
@@ -208,13 +215,14 @@ class VenstarColorTouch:
         self.sp_max = self.get_info("heattempmax")
 
         #
-        # T2xxx, T3xxx thermostats (and maybe more) always use Celsius in the API regardless of the display units
-        # So handle this case accordingly
-        if self.model.startswith(("T2", "T3")):
-            # Always degC
+        # T2xxx, T3xxx thermostats with firmware < 5.28 always use Celsius in the
+        # API regardless of the display units, so handle this case accordingly
+        if self.model.startswith(("T2", "T3")) and self.get_firmware_ver() < UNIT_BUG_FIX_VERSION:
+            # Always degC for firmware <= 5.28
             self.tempunits = self.TEMPUNITS_C
             logging.debug("Detected thermostat model %s, using temp units of Celsius", self.model)
-        elif self.model in ["VYG-4900-VEN", "VYG-4800-VEN", "VYG-3900", "COLORTOUCH"]:
+        elif (self.model in ["VYG-4900-VEN", "VYG-4800-VEN", "VYG-3900", "COLORTOUCH"] or
+              self.model.startswith(("T2", "T3"))):
             # Same as display units
             self.tempunits = self.display_tempunits
         elif self.get_info("heattempmax") >= 40:
@@ -268,6 +276,9 @@ class VenstarColorTouch:
 
     def get_api_ver(self):
         return self._api_ver
+
+    def get_firmware_ver(self):
+        return self._firmware_ver
 
     def get_type(self):
         return self._type
