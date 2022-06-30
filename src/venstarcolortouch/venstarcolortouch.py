@@ -8,7 +8,7 @@ from requests.auth import HTTPDigestAuth
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 MIN_API_VER=3
-# Venstar developers fixed a bug for some models with the 5.28 firmwre
+# Venstar developers fixed a bug for some models with the 5.28 firmware
 #   version. The new firmware correctly reports temperatures in the
 #   configured temperature unit.
 UNIT_BUG_FIX_VERSION=5.28
@@ -215,18 +215,14 @@ class VenstarColorTouch:
         self.sp_max = self.get_info("heattempmax")
 
         #
-        # T2xxx, T3xxx thermostats (and maybe more) always use Celsius in the API regardless of the display units
-        # So handle this case accordingly
-        if self.model.startswith(("T2", "T3")):
+        # T2xxx, T3xxx thermostats with firmware < 5.28 always use Celsius in the
+        # API regardless of the display units, so handle this case accordingly
+        if self.model.startswith(("T2", "T3")) and self.get_firmware_ver() < UNIT_BUG_FIX_VERSION:
             # Always degC for firmware <= 5.28
-            if self.get_firmware_ver() < UNIT_BUG_FIX_VERSION:
-                self.tempunits = self.TEMPUNITS_C
-                logging.debug("Detected thermostat model %s, using temp units of Celsius", self.model)
-            else:
-                self.tempunits = self.display_tempunits
-                logging.debug("Detected thermostat model %s, but new firmware(%s) fixes units bug",
-                              self.model, self.get_firmware_ver())
-        elif self.model in ["VYG-4900-VEN", "VYG-4800-VEN", "VYG-3900", "COLORTOUCH"]:
+            self.tempunits = self.TEMPUNITS_C
+            logging.debug("Detected thermostat model %s, using temp units of Celsius", self.model)
+        elif (self.model in ["VYG-4900-VEN", "VYG-4800-VEN", "VYG-3900", "COLORTOUCH"] or
+              self.model.startswith(("T2", "T3"))):
             # Same as display units
             self.tempunits = self.display_tempunits
         elif self.get_info("heattempmax") >= 40:
