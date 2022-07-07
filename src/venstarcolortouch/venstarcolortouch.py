@@ -11,7 +11,7 @@ MIN_API_VER=3
 # Venstar developers fixed a bug for some models with the 5.28 firmware
 #   version. The new firmware correctly reports temperatures in the
 #   configured temperature unit.
-UNIT_BUG_FIX_VERSION=5.28
+UNIT_BUG_FIX_VERSION = (5, 28)
 
 class VenstarColorTouch:
     def __init__(self, addr, timeout, user=None, password=None, pin=None, proto='http', SSLCert=False):
@@ -109,7 +109,7 @@ class VenstarColorTouch:
         j = r.json()
         if j["api_ver"] >= MIN_API_VER:
             self._api_ver = j["api_ver"]
-            self._firmware_ver = float(j["firmware"])
+            self._firmware_ver = tuple(map(int, j["firmware"].split(".")))
             logging.debug("api_ver: %s" % self._api_ver)
             self._type = j["type"]
             if "model" in j:
