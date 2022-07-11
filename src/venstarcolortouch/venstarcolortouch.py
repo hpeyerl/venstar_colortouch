@@ -269,7 +269,7 @@ class VenstarColorTouch:
         if not r:
             return None
 
-        setting = r.json()[attr]
+        setting = r.json().get(attr)
         self._info[attr] = setting
 
         return setting
