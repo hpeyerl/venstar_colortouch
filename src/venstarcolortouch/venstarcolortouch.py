@@ -109,7 +109,8 @@ class VenstarColorTouch:
         j = r.json()
         if j["api_ver"] >= MIN_API_VER:
             self._api_ver = j["api_ver"]
-            self._firmware_ver = tuple(map(int, j["firmware"].split(".")))
+            if "firmware" in j:
+                self._firmware_ver = tuple(map(int, j["firmware"].split(".")))
             logging.debug("api_ver: %s" % self._api_ver)
             self._type = j["type"]
             if "model" in j:
