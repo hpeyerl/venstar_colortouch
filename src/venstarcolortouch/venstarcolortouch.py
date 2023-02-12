@@ -197,7 +197,7 @@ class VenstarColorTouch:
         self.fan=self.get_info("fan")
         self.fanstate=self.get_info("fanstate")
         self.mode=self.get_info("mode")
-        self.state=self.get_info("state")
+        self.state=self.get_state_info(self.get_info("state"))
 
         #
         # Populate /settings stuff
@@ -262,6 +262,20 @@ class VenstarColorTouch:
 
     def get_info(self, attr):
         return self._info[attr]
+
+    #
+    # Issue #46:  ACCVWF1 reports wrong state on local API
+    #
+    #  The VYG-3800 reports HEATING when COOLING and vice versa.
+    #
+    def get_state_info(self, state):
+        if self.model == "VYG-3800":
+            if state == self.STATE_HEATING:
+                return STATE_COOLING
+            if state == self.STATE_COOLING:
+                return STATE_HEATING
+        else:
+            return state
 
     def get_settings(self, attr):
         if attr in self._info:
