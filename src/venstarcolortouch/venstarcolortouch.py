@@ -224,7 +224,7 @@ class VenstarColorTouch:
             # Always degC for firmware <= 5.28
             self.tempunits = self.TEMPUNITS_C
             logging.debug("Detected thermostat model %s, using temp units of Celsius", self.model)
-        elif (self.model in ["VYG-4900-VEN", "VYG-4800-VEN", "VYG-3900", "COLORTOUCH"] or
+        elif (self.model in ["VYG-4900-VEN", "VYG-4800-VEN", "VYG-3800", "VYG-3900", "COLORTOUCH"] or
               self.model.startswith(("T2", "T3"))):
             # Same as display units
             self.tempunits = self.display_tempunits
@@ -268,7 +268,7 @@ class VenstarColorTouch:
             return self.get_info(attr)
 
         # some models only return settings at this endpoint
-        r = self._request(f"/settings?q={attr}") 
+        r = self._request(f"/settings?q={attr}")
         if not r:
             return None
 
