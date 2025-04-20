@@ -260,7 +260,9 @@ class VenstarColorTouch:
             return True
         return False
 
-    def get_info(self, attr):
+    def get_info(self, attr=None):
+        if attr is None:
+            return self._info.copy()
         return self._info[attr]
 
     def get_settings(self, attr):
