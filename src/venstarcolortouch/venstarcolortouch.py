@@ -392,8 +392,11 @@ class VenstarColorTouch:
             self.log.warning("In auto mode, the cool temp must be {0} "
                   "degrees warmer than the heat temp.".format(self.setpointdelta))
             return False
-        self.heattemp = heattemp
-        self.cooltemp = cooltemp
+        # Round to two decimal places because
+        # ColorTouch T8900 (and possibly others) throws "Both Setpoints are required" 
+        # if a heat or cool temp with 3 decimal places or more is sent 
+        self.heattemp = round(heattemp, 2)
+        self.cooltemp = round(cooltemp, 2)
         data = urllib.parse.urlencode({'heattemp':self.heattemp, 'cooltemp':self.cooltemp})
         return self.set_control(data)
 
