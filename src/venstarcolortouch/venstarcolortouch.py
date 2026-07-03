@@ -122,7 +122,7 @@ class VenstarColorTouch:
                 #Set a different name if dealing with a T5900 v4.08 to know that the humidity mapping is correct
                 if self._api_ver == 5:
                     self.model = "COLORTOUCH (LEGACY)"
-                    self._firmware_ver = (4,08)
+                    self._firmware_ver = (4,8)
             return True
         else:
             self.log.error("Unsupported API version: %s", j["api_ver"])
