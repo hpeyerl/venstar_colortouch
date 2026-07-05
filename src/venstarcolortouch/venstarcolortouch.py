@@ -119,6 +119,10 @@ class VenstarColorTouch:
                 self.model = j["model"]
             else:
                 self.model = "COLORTOUCH"
+                #Set a different name if dealing with a T5900 v4.08 to know that the humidity mapping is correct
+                if self._api_ver == 5:
+                    self.model = "COLORTOUCH (LEGACY)"
+                    self._firmware_ver = (4,8)
             return True
         else:
             self.log.error("Unsupported API version: %s", j["api_ver"])
@@ -266,6 +270,14 @@ class VenstarColorTouch:
         return self._info[attr]
 
     def get_settings(self, attr):
+        #on T5900 with firmware v4.08, dehum and hum setpoints are mapped incorrectly.
+        #so change attribute to the one with the correct information
+        if self._api_ver == 5:
+            if attr == "dehum_setpoint":
+                attr = "hum_active"
+            elif attr == "hum_setpoint":
+                attr = "dehum_setpoint"
+                
         if attr in self._info:
             return self.get_info(attr)
 
