@@ -1,6 +1,9 @@
 import sys
 
-__version__ = "0.21"
+#
+# this is a dumb version.
+#
+__version__ = "0.22"
 
 __uri__ = 'https://github.com/hpeyerl/venstar_colortouch'
 __title__ = "venstarcolortouch"
