@@ -4,10 +4,9 @@
 PYTHON:=python3
 PKG:=venstarcolortouch
 #
-# can't handle the import so force the version.  XXX(hp).
+# Change version in src/$(PKG)/__init__.py first.
 #
-#VERSION:=${shell ${PYTHON} src/${PKG}/__init__.py}
-VERSION=0.21
+VERSION := $(shell sed -n "s/^__version__ *= *[\"']\([^\"']*\)[\"'].*/\1/p" src/$(PKG)/__init__.py)
 
 all: clean build test
 
