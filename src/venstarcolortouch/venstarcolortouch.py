@@ -119,8 +119,10 @@ class VenstarColorTouch:
                 self.model = j["model"]
             else:
                 self.model = "COLORTOUCH"
-                #Set a different name if dealing with a T5900 v4.08 to know that the humidity mapping is correct
-                if self._api_ver == 5:
+                # API-v5 residential units without model metadata are legacy
+                # T5900s. Commercial ColorTouch units share API v5 but do not
+                # use the T5900 humidity-field workaround.
+                if self._api_ver == 5 and self._type != "commercial":
                     self.model = "COLORTOUCH (LEGACY)"
                     self._firmware_ver = (4,8)
             return True
@@ -270,9 +272,10 @@ class VenstarColorTouch:
         return self._info[attr]
 
     def get_settings(self, attr):
-        #on T5900 with firmware v4.08, dehum and hum setpoints are mapped incorrectly.
-        #so change attribute to the one with the correct information
-        if self._api_ver == 5:
+        # On residential T5900 thermostats with firmware v4.08, dehum and hum
+        # setpoints are mapped incorrectly. Commercial API-v5 ColorTouch
+        # thermostats use the normal field mapping.
+        if self._api_ver == 5 and self._type != "commercial":
             if attr == "dehum_setpoint":
                 attr = "hum_active"
             elif attr == "hum_setpoint":
